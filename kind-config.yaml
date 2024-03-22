@@ -1,17 +1,30 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+# SOURCE: https://github.com/kubernetes-sigs/kind/blob/9ea8a5993a7118c6f3b126681e8fd0dd5baa64df/pkg/cluster/internal/kubeadm/config.go#L193
+# patch the generated kubeadm config with some extra settings
+# patch it further using a JSON 6902 patch
+kubeadmConfigPatchesJSON6902:
+- group: kubeadm.k8s.io
+  version: v1beta2
+  kind: ClusterConfiguration
+  patch: |
+    - op: add
+      path: /apiServer/certSANs/-
+      value: k8s.localhost
 kubeadmConfigPatches:
   - |-
     kind: ClusterConfiguration
     apiServer:
+      # certSANs: [localhost, registry.local.gd, "127.0.0.1", registry.localhost, k8s.localhost, whoami.k8s.localhost, "192.168.3.13"]
       extraArgs:
-        enable-admission-plugins: "NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook"
+        enable-admission-plugins: "NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota"
         v: "4"
     controllerManager:
       extraArgs:
         v: "4"
     controllerManager:
       extraArgs:
+        v: "4"
         bind-address: 0.0.0.0
     etcd:
       local:
@@ -20,23 +33,37 @@ kubeadmConfigPatches:
     scheduler:
       extraArgs:
         bind-address: 0.0.0.0
+        v: "4"
   - |-
     kind: KubeProxyConfiguration
     metricsBindAddress: 0.0.0.0
+  # - |
+  #   apiVersion: kubelet.config.k8s.io/v1beta1
+  #   kind: KubeletConfiguration
+  #   # SOURCE: https://github.com/kubernetes-sigs/kind/blob/9ea8a5993a7118c6f3b126681e8fd0dd5baa64df/pkg/internal/patch/kubeyaml_test.go#L90
+  #   # disable disk resource management by default
+  #   # kubelet will see the host disk that the inner container runtime
+  #   # is ultimately backed by and attempt to recover disk space. we don't want that.
+  #   imageGCHighThresholdPercent: 100
+  #   evictionHard:
+  #     nodefs.available: "0%"
+  #     nodefs.inodesFree: "0%"
+  #     imagefs.available: "0%"
+
 nodes:
 - role: control-plane
   image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
-  labels:
-    node-role.kubernetes.io/control-plane: ""
-    node-role.kubernetes.io/master: ""
-    app.kubernetes.io/component: "controller"
+  # labels:
+  #   node-role.kubernetes.io/control-plane: ""
+  #   node-role.kubernetes.io/master: ""
+  #   app.kubernetes.io/component: "controller"
   # SOURCE: https://kind.sigs.k8s.io/docs/user/ingress/#ingress-nginx
   kubeadmConfigPatches:
   - |
     kind: InitConfiguration
     nodeRegistration:
       kubeletExtraArgs:
-        node-labels: "ingress-ready=true"
+        node-labels: "ingress-ready=true,node-role.kubernetes.io/control-plane=\"\""
 # enable-admission-plugins: NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota
   extraMounts:
     - hostPath: /var/run/docker.sock
@@ -73,10 +100,10 @@ nodes:
 
 - role: control-plane
   image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
-  labels:
-    node-role.kubernetes.io/control-plane: ""
-    node-role.kubernetes.io/master: ""
-    app.kubernetes.io/component: "controller"
+  # labels:
+  #   node-role.kubernetes.io/control-plane: ""
+  #   node-role.kubernetes.io/master: ""
+  #   app.kubernetes.io/component: "controller"
   # SOURCE: https://kind.sigs.k8s.io/docs/user/ingress/#ingress-nginx
   kubeadmConfigPatches:
   - |
@@ -115,10 +142,10 @@ nodes:
 
 - role: control-plane
   image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
-  labels:
-    node-role.kubernetes.io/control-plane: ""
-    node-role.kubernetes.io/master: ""
-    app.kubernetes.io/component: "controller"
+  # labels:
+  #   node-role.kubernetes.io/control-plane: ""
+  #   node-role.kubernetes.io/master: ""
+  #   app.kubernetes.io/component: "controller"
   # SOURCE: https://kind.sigs.k8s.io/docs/user/ingress/#ingress-nginx
   kubeadmConfigPatches:
   - |
@@ -161,15 +188,15 @@ nodes:
 
 - role: worker
   image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
-  labels:
-      node-role.kubernetes.io/worker: ""
+  # labels:
+  #     node-role.kubernetes.io/worker: ""
 
 - role: worker
   image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
-  labels:
-      node-role.kubernetes.io/worker: ""
+  # labels:
+  #     node-role.kubernetes.io/worker: ""
 
 - role: worker
   image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
-  labels:
-      node-role.kubernetes.io/worker: ""
+  # labels:
+  #     node-role.kubernetes.io/worker: ""

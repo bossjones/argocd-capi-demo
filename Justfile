@@ -692,8 +692,13 @@ kind-bootstrap: bootstrap
 kind-secrets:
 	bash scripts/kind-secrets.sh
 
+kind-taint-controlplane:
+	bash scripts/taint-control-plane.sh
+
 kind-create:
-	kind create cluster --config=kind-config.yaml --name=manager
+	kind create cluster --config=kind-config.yaml --name=manager -v 9
 	@yes | pv -SL1 -F 'Resuming in %e' -s 30 > /dev/null
 	kubectl cluster-info
+	kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+	kubectl taint nodes --all node-role.kubernetes.io/master-
 	just bootstrap
