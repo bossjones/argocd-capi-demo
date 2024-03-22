@@ -663,7 +663,20 @@ serve-docs-local:
 screen-docker-desktop:
   screen ~/Library/Containers/com.docker.docker/Data/com.docker.driver.amd64-linux/tty
 
-
+apply-appsets:
+  kustomize build --enable-alpha-plugins --enable-exec --enable-helm apps/argo/overlays/default | kubectl apply -f -
 
 bootstrap:
-  kustomize build --enable-alpha-plugins --enable-exec --enable-helm bootstrap/install | kubectl apply --server-side -f -
+  until kustomize build --enable-alpha-plugins --enable-exec --enable-helm bootstrap/install | kubectl apply -f -; do sleep 3; done
+
+  kubectl rollout status -n argo-events $(kubectl get deployment -n argo-events -l eventsource-name=webhook -o name)
+  kubectl rollout status -n argo-events $(kubectl get deployment -n argo-events -l sensor-name=webhook -o name)
+  kubectl rollout status sts/argocd-application-controller -n argocd
+
+kind-bootstrap: bootstrap
+
+kind-create:
+  kind create cluster --config=kind-config.yaml --name=manager
+  @yes | pv -SL1 -F 'Resuming in %e' -s 30 > /dev/null
+  just bootstrap
+  bash scripts/argoproj-status.sh
