@@ -11,11 +11,11 @@ kubeadmConfigPatchesJSON6902:
     - op: add
       path: /apiServer/certSANs/-
       value: k8s.localhost
+# certSANs: [localhost, registry.local.gd, "127.0.0.1", registry.localhost, k8s.localhost, whoami.k8s.localhost, "192.168.3.13"]
 kubeadmConfigPatches:
   - |-
     kind: ClusterConfiguration
     apiServer:
-      # certSANs: [localhost, registry.local.gd, "127.0.0.1", registry.localhost, k8s.localhost, whoami.k8s.localhost, "192.168.3.13"]
       extraArgs:
         enable-admission-plugins: "NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota"
         v: "4"
@@ -63,7 +63,8 @@ nodes:
     kind: InitConfiguration
     nodeRegistration:
       kubeletExtraArgs:
-        node-labels: "ingress-ready=true,node-role.kubernetes.io/control-plane=\"\""
+        node-labels: "ingress-ready=true"
+# ,node-role.kubernetes.io/control-plane=\"\"
 # enable-admission-plugins: NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota
   extraMounts:
     - hostPath: /var/run/docker.sock
