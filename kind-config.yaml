@@ -1,6 +1,28 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
-
+kubeadmConfigPatches:
+  - |-
+    kind: ClusterConfiguration
+    apiServer:
+      extraArgs:
+        enable-admission-plugins: "NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook"
+        v: "4"
+    controllerManager:
+      extraArgs:
+        v: "4"
+    controllerManager:
+      extraArgs:
+        bind-address: 0.0.0.0
+    etcd:
+      local:
+        extraArgs:
+          listen-metrics-urls: http://0.0.0.0:2381
+    scheduler:
+      extraArgs:
+        bind-address: 0.0.0.0
+  - |-
+    kind: KubeProxyConfiguration
+    metricsBindAddress: 0.0.0.0
 nodes:
 - role: control-plane
   image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
@@ -15,11 +37,7 @@ nodes:
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true"
-  - |
-    kind: ClusterConfiguration
-    apiServer:
-        extraArgs:
-          enable-admission-plugins: NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota
+# enable-admission-plugins: NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota
   extraMounts:
     - hostPath: /var/run/docker.sock
       containerPath: /var/run/docker.sock
@@ -41,13 +59,16 @@ nodes:
   - containerPort: 30346
     hostPort: 9443
   - containerPort: 80
+  # - containerPort: 30000
     hostPort: 80
     protocol: TCP
-  - containerPort: 8080
-    hostPort: 8080
-    protocol: TCP
   - containerPort: 443
+  # - containerPort: 30001
     hostPort: 443
+    protocol: TCP
+  - containerPort: 8080
+  # - containerPort: 30002
+    hostPort: 8080
     protocol: TCP
 
 - role: control-plane
@@ -63,12 +84,6 @@ nodes:
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true"
-  - |
-    kind: ClusterConfiguration
-    apiServer:
-        extraArgs:
-          enable-admission-plugins: NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota
-
   extraMounts:
     - hostPath: /var/run/docker.sock
       containerPath: /var/run/docker.sock
@@ -83,22 +98,23 @@ nodes:
       hostPath: ${PWD}/audit
       # propagation: Bidirectional
       readOnly: false
-  extraPortMappings:
-  - containerPort: 8443
-    hostPort: 8443
-  - containerPort: 30346
-    hostPort: 9443
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 8080
-    hostPort: 8080
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
+  # extraPortMappings:
+  # - containerPort: 8443
+  #   hostPort: 8443
+  # - containerPort: 30346
+  #   hostPort: 9443
+  # - containerPort: 80
+  #   hostPort: 80
+  #   protocol: TCP
+  # - containerPort: 8080
+  #   hostPort: 8080
+  #   protocol: TCP
+  # - containerPort: 443
+  #   hostPort: 443
+  #   protocol: TCP
 
 - role: control-plane
+  image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
   labels:
     node-role.kubernetes.io/control-plane: ""
     node-role.kubernetes.io/master: ""
@@ -110,11 +126,7 @@ nodes:
     nodeRegistration:
       kubeletExtraArgs:
         node-labels: "ingress-ready=true"
-  - |
-    kind: ClusterConfiguration
-    apiServer:
-        extraArgs:
-          enable-admission-plugins: NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota
+# enable-admission-plugins: NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota
 
   extraMounts:
     - hostPath: /var/run/docker.sock
@@ -132,20 +144,20 @@ nodes:
       readOnly: false
 
 
-  extraPortMappings:
-  - containerPort: 8443
-    hostPort: 8443
-  - containerPort: 30346
-    hostPort: 9443
-  - containerPort: 80
-    hostPort: 80
-    protocol: TCP
-  - containerPort: 8080
-    hostPort: 8080
-    protocol: TCP
-  - containerPort: 443
-    hostPort: 443
-    protocol: TCP
+  # extraPortMappings:
+  # - containerPort: 8443
+  #   hostPort: 8443
+  # - containerPort: 30346
+  #   hostPort: 9443
+  # - containerPort: 80
+  #   hostPort: 80
+  #   protocol: TCP
+  # - containerPort: 8080
+  #   hostPort: 8080
+  #   protocol: TCP
+  # - containerPort: 443
+  #   hostPort: 443
+  #   protocol: TCP
 
 - role: worker
   image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
@@ -155,9 +167,9 @@ nodes:
 - role: worker
   image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
   labels:
-      node-role.kubernetes.io/control-plane: ""
+      node-role.kubernetes.io/worker: ""
 
 - role: worker
   image: kindest/node:v1.27.11@sha256:681253009e68069b8e01aad36a1e0fa8cf18bb0ab3e5c4069b2e65cafdd70843
   labels:
-      node-role.kubernetes.io/control-plane: ""
+      node-role.kubernetes.io/worker: ""
