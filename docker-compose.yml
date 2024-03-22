@@ -1,0 +1,258 @@
+version: '3.9'
+# SOURCE: https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/infrastructure-setup/ha-k3s-kubernetes-cluster
+# SOURCE: https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/infrastructure-setup/ha-k3s-kubernetes-cluster
+# SOURCE: https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/infrastructure-setup/ha-k3s-kubernetes-cluster
+# SOURCE: https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/infrastructure-setup/ha-k3s-kubernetes-cluster
+# SOURCE: https://ranchermanager.docs.rancher.com/how-to-guides/new-user-guides/infrastructure-setup/ha-k3s-kubernetes-cluster
+
+
+# SOURCE: https://tecadmin.net/docker-compose-for-mysql-with-phpmyadmin/
+# SOURCE: https://github.com/vimalgandhi/Docker-compose-File/blob/main/README.md?plain=1
+# Since only root has access to /var/lib/docker and I'm running the Grafana agent under its own user on the host itself, changing the permissions to that directory seemed like a bad idea to me. After a bit of research I figured out how to make this work using the journald driver, which works nicely.
+# SOURCE: https://gist.github.com/ruanbekker/c6fa9bc6882e6f324b4319c5e3622460?permalink_comment_id=4009155#gistcomment-4009155
+# SOURCE: https://www.fadocodecamp.com/posts/running-a-mysql-database-with-docker-compose-a-beginners-guide
+networks:
+  kine_net:
+
+x-logging:
+  &default-logging
+  driver: "journald"
+  options:
+    tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+
+# for the unifipoller bits
+# https://github.com/unpoller/unpoller/blob/master/init/docker/docker-compose.yml
+volumes:
+    # database-data: null # named volumes can be managed easier using docker-compose
+    kine_mysql:
+    tmpvolume:
+    postgres:
+    pgadmin:
+    # driver: local
+    redis_data:
+      driver: local
+
+services:
+  postgres:
+    privileged: true
+    tty: true
+    stdin_open: true
+    container_name: postgres
+    image: postgres
+    environment:
+      INIT_POSTGRES_DBNAME: "authentik"
+      INIT_POSTGRES_PASS: "password"
+      INIT_POSTGRES_SUPER_PASS: "password"
+      INIT_POSTGRES_USER: "postgres"
+      PGDATA: /data/postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_SUPER_PASS: "8edF6sRQjx"
+      POSTGRES_SUPER_USER: "authentik"
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - "5432:5432"
+    # networks:
+    #   - postgres
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    # networks:
+    #   - postgres
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+  # TODO: use redis env var "ALLOW_EMPTY_PASSWORD" in k3d!!!!!!!!!!!!!!!!!!!!
+  # redis:
+  #     image: "redis:7.2.4-alpine"
+  #     environment:
+  #         ALLOW_EMPTY_PASSWORD: "yes"
+
+  # Since the Loki containers are running as user 10001 and the mounted data volume is owned by root,
+  # Loki would not have permissions to create the directories.
+  # Therefore the init container changes permissions of the mounted directory.
+  init:
+    image: mysql:8.3.0
+    user: root
+    entrypoint:
+      - "chown"
+      # - "10001:10001"
+      - "mysql:mysql"
+      - "-Rv"
+      - "/etc/mysql/conf.d/"
+      # - "/mysql-kine"
+    volumes:
+      - ./storage/mysql-kine/cert.pem:/etc/mysql/conf.d/server-cert.pem:rw
+      - ./storage/mysql-kine/key.pem:/etc/mysql/conf.d/server-key.pem:rw
+      - ./storage/mysql-kine/ca.crt:/etc/mysql/conf.d/server-ca.pem:rw
+      - ./mysql-ssl.cnf:/etc/mysql/conf.d/my.cnf:rw
+      - "kine_mysql:/var/lib/mysql:rw"
+      - "tmpvolume:/tmp:rw"
+  kine-db:
+    # image: mysql:8.0.36-bookworm
+    image: mysql:8.3.0
+    # network_mode: "host"
+    # pid: "host"
+    privileged: true
+    tty: true
+    stdin_open: true
+    environment:
+      MYSQL_DATABASE: 'kine'
+      # So you don't have to use root, but you can if you like
+      MYSQL_USER: 'pi'
+      # You can use whatever password you like
+      MYSQL_PASSWORD: 'raspberry'
+      # Password for root access
+      MYSQL_ROOT_PASSWORD: 'raspberry'
+      # SOURCE: https://stackoverflow.com/questions/40825617/cannot-connect-to-mysql-docker-container-from-container-with-django-app
+      MYSQL_ROOT_HOST: '%'
+      # -- Set the container timezone
+      TZ: "America/New_York"
+      #       $ docker network create some-network
+      # $ docker run --detach --network some-network --name some-mariadb --env MARIADB_USER=example-user --env MARIADB_PASSWORD=my_cool_secret --env MARIADB_ROOT_PASSWORD=my-secret-pw  mariadb:latest
+      # $ docker run --detach --network some-network --name some-application --env APP_DB_HOST=some-mariadb  --env APP_DB_USER=example-user --env APP_DB_PASSWD=my_cool_secret some-application
+      MARIADB_USER: 'pi'
+      MARIADB_PASSWORD: 'raspberry'
+      MARIADB_DATABASE: 'kine'
+      MARIADB_ROOT_PASSWORD: 'raspberry'
+      MARIADB_ROOT_HOST: '%'
+    ports:
+      # <Port exposed> : <MySQL Port running inside container>
+      - '0.0.0.0:6033:3306'
+    expose:
+      # Opens port 3306 on the container
+      - '6033'
+      # Where our data will be persisted
+    volumes:
+      - ./storage/mysql-kine/cert.pem:/etc/mysql/conf.d/server-cert.pem
+      - ./storage/mysql-kine/key.pem:/etc/mysql/conf.d/server-key.pem
+      - ./storage/mysql-kine/ca.crt:/etc/mysql/conf.d/server-ca.pem
+      - ./mysql-ssl.cnf:/etc/mysql/conf.d/my.cnf
+      - ./storage/mysqllogs:/var/log/mysqllogs:rw
+      # SOURCE: https://forums.docker.com/t/mysql-slow-performance-in-docker/37179/23
+      - "kine_mysql:/var/lib/mysql:delegated"
+      # -v /tmp/mysql-data:/var/lib/mysql is added to retain the data when the container
+      # SOURCE: https://forums.docker.com/t/mysql-slow-performance-in-docker/37179/23
+      - "tmpvolume:/tmp:delegated"
+    container_name: kine-db
+    cap_add:
+      - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
+      # SOURCE: https://geshan.com.np/blog/2022/02/mysql-docker-compose/
+      # - SYS_NICE # The cap_add set to SYS_NICE suppresses some not useful error messages.
+    restart: unless-stopped
+    # SOURCE: https://github.com/vimalgandhi/Docker-compose-File/blob/main/README.md?plain=1
+    # # container_name: therapy-link-mysql
+    # platform: linux/amd64 # Only required in case Apple M1 / ARM
+    # platform: linux/x86_64
+    # platform: linux/x86_64/v8
+    # platform: "linux/${ARCH:-amd64}"
+    # command: --default-authentication-plugin=mysql_native_password
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+
+
+  mysqld-exporter:
+    image: quay.io/prometheus/mysqld-exporter
+    container_name: mysqld-exporter
+    restart: unless-stopped
+    command:
+    - "--mysqld.username=root:raspberry"
+    - "--mysqld.address=localhost:6033"
+    # SOURCE: https://github.com/vimalgandhi/Docker-compose-File/blob/main/README.md?plain=1
+    # # container_name: therapy-link-mysql
+    # platform: linux/amd64 # Only required in case Apple M1 / ARM
+    # command: --default-authentication-plugin=mysql_native_password
+    ports:
+      # <Port exposed> : <MySQL Port running inside container>
+      - '0.0.0.0:9104:9104'
+    expose:
+      # Opens port 3306 on the container
+      - '9104'
+      # Where our data will be persisted
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+
+  netshoot:
+    image: nicolaka/netshoot
+    container_name: netshoot
+    network_mode: "host"
+    pid: "host"
+    privileged: true
+    restart: unless-stopped
+    command: tail -f /dev/null
+    volumes:
+      - $PWD/storage:/data
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+
+  # phpmyadmin:
+  #   # image: phpmyadmin/phpmyadmin
+  #   image: arm64v8/phpmyadmin
+  #   container_name: pma
+  #   # links:
+  #   #   - kine-db
+  #   environment:
+  #     PMA_HOST: kine-db
+  #     PMA_PORT: 3306
+  #     # when set to 1 connection to the arbitrary server will be allowed
+  #     PMA_ARBITRARY: 1
+  #   restart: always
+  #   ports:
+  #     - 6033:80
+  #   network_mode: "host"
+  #   pid: "host"
+  #   privileged: true
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"
+
+
+  redis:
+    image: bitnami/redis:6.2.10
+    hostname: "authentik-redis"
+    privileged: true
+    tty: true
+    stdin_open: true
+    container_name: authentik-redis
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+      REDIS_PORT_NUMBER: 7001
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+    ports:
+    - "0.0.0.0:7001:7001"
+    volumes:
+    - 'redis_data:/bitnami/redis/data'
+    logging:
+      driver: json-file
+      options:
+        tag: "{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}"

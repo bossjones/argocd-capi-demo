@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/name: argocd-rbac-cm
+    app.kubernetes.io/part-of: argocd
+  name: argocd-rbac-cm
+data:
+  policy.default: role:admin
+  # SOURCE: https://argo-cd.readthedocs.io/en/stable/operator-manual/rbac/
+  # RBAC Permission Structure¶
+  # Breaking down the permissions definition differs slightly between applications and every other resource type in Argo CD.
+
+  # All resources except application-specific permissions (see next bullet):
+
+  # p, <role/user/group>, <resource>, <action>, <object>
+
+  # Applications, applicationsets, logs, and exec (which belong to an AppProject):
+
+  # p, <role/user/group>, <resource>, <action>, <appproject>/<object>
+  policy.csv: |
+    p, role:admin, exec, create, */*, allow
+    g, ext, role:extension
+    p, role:extension, applications, get, default/httpbin-app, allow
+    p, role:extension, extensions, invoke, httpbin, allow
+    p, role:action-runner, applications, action/argoproj.io/Rollout/abort, *, allow
+    p, role:action-runner, applications, action/argoproj.io/Rollout/promote-full, *, allow
+    p, role:action-runner, applications, action/argoproj.io/Rollout/retry, *, allow
+    p, role:action-runner, applications, action/argoproj.io/Rollout/resume, *, allow
+    p, role:action-runner, applications, action/argoproj.io/Rollout/restart, *, allow
+    p, role:action-runner, applications, action/argoproj.io/AnalysisRun/terminate, *, allow
+    p, role:action-runner, applications, action/apps/DaemonSet/restart, *, allow
+    p, role:action-runner, applications, action/apps/StatefulSet/restart, *, allow
+    p, role:action-runner, applications, action/apps/Deployment/pause, *, allow
+    p, role:action-runner, applications, action/apps/Deployment/resume, *, allow
+    p, role:action-runner, applications, action/apps/Deployment/restart, *, allow
+
+    # If you don't want to grant the new permissions, don't include the following lines
+    p, role:action-runner, applications, action/argoproj.io/WorkflowTemplate/create-workflow, *, allow
+    p, role:action-runner, applications, action/argoproj.io/CronWorkflow/create-workflow, *, allow
+    p, role:action-runner, applications, action/batch/CronJob/create-job, *, allow
+
+    # pork3s
+    g, lldap_admin, role:admin
+    p, lldap_admin, exec, create, */*, allow

@@ -1,0 +1,674 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/k3d-io/k3d/main/pkg/config/v1alpha5/schema.json
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: demo
+servers: 3
+agents: 3
+kubeAPI:
+  host: "k8s.localhost"
+  # hostIP: "127.0.0.1"
+  hostIP: "0.0.0.0"
+  hostPort: "6445"
+image: rancher/k3s:v1.27.4-k3s1
+# NOTE: working - image: rancher/k3s:v1.27.4-k3s1
+# image: rancher/k3s:v1.29.1-k3s1
+network: demo-net
+ports:
+- port: 0.0.0.0:80:80
+  nodeFilters:
+  - loadbalancer
+# FIXME: Try this - port: 0.0.0.0:443:443
+- port: 0.0.0.0:443:443
+  nodeFilters:
+  - loadbalancer
+# workflows
+- port: 0.0.0.0:2746:2746
+  nodeFilters:
+  - loadbalancer
+
+# # SOURCE: https://github.com/bravecobra/k8s-dev-infrastructure/blob/adb085443cffb00a69c2ddc4a415f02ef785d79a/src/clusters/k3d/devinfra-template.yaml#L2
+# - port: 8100:8100 # same as `--port '8100:8100@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+#     # - server:0
+#     # - agent:*
+# # # SOURCE: https://github.com/bravecobra/k8s-dev-infrastructure/blob/adb085443cffb00a69c2ddc4a415f02ef785d79a/src/clusters/k3d/devinfra-template.yaml#L2
+# # - port: 8080:8080 # same as `--port '8100:8100@loadbalancer'`
+# #   nodeFilters:
+# #     - loadbalancer
+# #     # - server:0
+# #     # - agent:*
+
+- port: 0.0.0.0:6443:6443
+  nodeFilters:
+    - loadbalancer
+# #######################################################
+# # kine
+# #######################################################
+- port: 0.0.0.0:2379:2379
+  nodeFilters:
+    - loadbalancer
+
+- port: 0.0.0.0:2380:2380
+  nodeFilters:
+    - loadbalancer
+
+- port: 0.0.0.0:2381:2381
+  nodeFilters:
+    - loadbalancer
+# #######################################################
+# # kine - end
+# #######################################################
+
+# - port: 30000:30000
+#   nodeFilters:
+#     - loadbalancer
+# - port: 8080:8080
+#   nodeFilters:
+#     - loadbalancer
+# - port: 9201:9201
+#   nodeFilters:
+#     - loadbalancer
+# - port: 80:80
+#   nodeFilters:
+#     - loadbalancer
+# - port: 443:443
+#   nodeFilters:
+#     - loadbalancer
+# - port: 9090:9090
+#   nodeFilters:
+#     - loadbalancer
+# - port: 8081:8081
+#   nodeFilters:
+#     - loadbalancer
+# - port: 9091:9091
+#   nodeFilters:
+#     - loadbalancer
+
+# #
+# #%{ if expose_azurite == true }
+# - port: 10000:10000 # same as `--port '10000:10000@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# - port: 10001:10001 # same as `--port '10001:10001@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# - port: 10002:10002 # same as `--port '10002:10002@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_seq == true }
+# - port: 5341:5341 # same as `--port '5341:5341@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_opentelemetry == true }
+# - port: 4317:4317 # same as `--port '4317:4317@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# - port: 4318:4318 # same as `--port '4318:4318@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_jaeger == true }
+# - port: 6831:6831 # same as `--port '6831:6831@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# - port: 6832:6832 # same as `--port '6832:6832@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_rabbitmq == true }
+# - port: 5672:5672 # same as `--port '5672:5672@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_loki == true }
+# - port: 3100:3100 # same as `--port '3100:3100@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_rds_mssql == true }
+# - port: 1433:1433 # same as `--port '1433:1433@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_rds_oracle == true }
+# - port: 1521:1521 # same as `--port '1521:1521@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_rds_mysql == true }
+# - port: 3306:3306 # same as `--port '3306:3306@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_rds_mysql == true }
+# - port: 3307:3307 # same as `--port '3306:3306@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_rds_postgres == true }
+# - port: 5432:5432 # same as `--port '5432:5432@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_nosql_mongodb == true }
+# - port: 27017:27017 # same as `--port '27017:27017@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+
+# #%{ if expose_redis == true }
+# - port: 6379:6379 # same as `--port '6379:6379@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# #%{ endif }
+# #%{ if expose_grafana == true }
+# - port: 3000:3000 # same as `--port '6379:6379@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+#%{ endif }
+# - port: 5053:53/udp
+#   nodeFilters:
+#   - agent:0:direct
+# # https://github.com/bravecobra/k8s-e2e/blob/fe1370ae14ca9bed95523b122cca67c9e937ab44/k3s-devinfra.yaml#L2
+# - port: 8100:8100 # same as `--port '8100:8100@loadbalancer'`
+#   nodeFilters:
+#     - loadbalancer
+# - port: 8080:8080
+#   nodeFilters:
+#   - loadbalancer
+###########################################################################################
+# SOURCE: https://k3d.io/v5.6.0//usage/registries/#creating-a-registry-proxy-pull-through-registry-via-configfile
+# Creating a registry proxy / pull-through registry via configfile
+# apiVersion: k3d.io/v1alpha5
+# kind: Simple
+# metadata:
+#   name: test-regcache
+# registries:
+#   create:
+#     name: docker-io # name of the registry container
+#     proxy:
+#       remoteURL: https://registry-1.docker.io # proxy DockerHub
+#     volumes:
+#       - /tmp/reg:/var/lib/registry # persist data locally in /tmp/reg
+#   config: | # tell K3s to use this registry when pulling from DockerHub
+#     mirrors:
+#       "docker.io":
+#         endpoint:
+#           - http://docker-io:5000
+###########################################################################################
+# env:
+#   - envVar: KUBECONFIG=/etc/rancher/k3s/k3s.yaml # same as `--env 'bar=baz@server:0'`
+#     nodeFilters:
+#       - server:*
+registries:
+  create:
+    # name: registry.localhost
+    name: docker-io
+    host: "0.0.0.0"
+    hostPort: "5002"
+    proxy:
+      remoteURL: https://registry-1.docker.io
+      username: "$DOCKER_USERNAME"
+      password: "$DOCKER_PASSWORD"
+    volumes:
+      - ${PWD}/storage/k3d-cache-registry:/var/lib/registry
+  # SOURCE: https://github.com/uselagoon/lagoon/blob/90604833072aef568b32db7b0cf173570ea6e625/k3d.config.yaml.tpl#L13
+  # NOTE: https://github.com/DoD-Platform-One/bigbang/blob/f8999019da783ce008b0470968c01208a4a7b6b3/docs/guides/airgap/k3d.md?plain=1#L30
+  config: |
+    mirrors:
+      "docker.io":
+        endpoint:
+          - http://docker-io:5000
+      # "registry.localhost":
+      #   endpoint:
+      #     - http://registry.local.gd:5002
+      # "docker.io":
+      #   endpoint:
+      #     - http://registry.local.gd:5002
+
+      "quay.io":
+        endpoint:
+          -  http://docker-io:5000
+      "ghcr.io":
+        endpoint:
+          -  http://docker-io:5000
+      "gcr.io":
+        endpoint:
+          -  http://docker-io:5000
+      "public.ecr.aws":
+        endpoint:
+          -  http://docker-io:5000
+      "mcr.microsoft.com":
+        endpoint:
+          -  http://docker-io:5000
+      # "registry.gitlab.com":
+      #   endpoint:
+      #     - http://docker-io:5006
+
+    configs:
+      "docker.io":
+        auth:
+          username: "$DOCKER_USERNAME"
+          password: "$DOCKER_PASSWORD"
+          # tls:
+          #   insecure_skip_verify: true
+
+volumes:
+- volume: "${PWD}/storage:/var/lib/rancher/k3s/storage"
+  nodeFilters:
+  - server:*
+  - agent:*
+# SOURCE: https://github.com/grafana/tns/blob/main/create-k3d-cluster
+# Expose the machine ID as a volume (if available) since this is used
+# by promtail and the Grafana Agent for reading the Systemd journal. If
+# it doesn't exist on the machine k3d is being run on (i.e. non-GNU/Linux
+# machines), just create an empty file.
+- volume: "${PWD}/storage/machine-id:/etc/machine-id"
+  nodeFilters:
+  - server:*
+  - agent:*
+- volume: "${PWD}/storage/mysql-kine:/mysql-kine"
+  nodeFilters:
+  - server:*
+  - agent:*
+# NOTE: THIS WORKS, jsut commenting out for whatever reason
+# - volume: "${PWD}/audit/test-audit.yaml:/var/lib/rancher/k3s/server/manifests/audit.yaml"
+#   nodeFilters:
+#   - server:*
+- volume: "${PWD}/audit/logs:/var/log/kubernetes/audit"
+  nodeFilters:
+  - server:*
+# SOURCE: https://github.com/defenseunicorns/uds-capability-confluence/blob/90b30c74d83f0aa4ec404a840b92a5956f921195/utils/k3d/k3d-config.yaml#L2
+# - volume: /etc/machine-id:/etc/machine-id
+#   nodeFilters:
+#     - server:*
+# - volume: /sys/fs/bpf:/sys/fs/bpf:shared
+#   nodeFilters:
+#     - server:*
+  # --volume {{PWD}}:/var/lib/rancer/k3s/server/manifests/traefik-config.yaml@all \
+  # --volume /tmp/k3dvol:/var/lib/rancher/k3s/storage@all \
+
+# /etc/hosts style entries to be injected into /etc/hosts in the node containers and in the NodeHosts section in CoreDNS
+hostAliases:
+- ip: 127.0.0.1
+  hostnames:
+  - k8s.localhost
+  - app.k8s.localhost
+  - example.k8s.localhost
+  - argocd.k8s.localhost
+  # - argocd.k8s.localhost
+  - postgres.k8s.localhost
+  - dbs.k8s.localhost
+- ip: 192.168.3.13
+  hostnames:
+  - mysql-kine.k8s.localhost
+options:
+  k3d:
+    wait: true
+    timeout: "360s"
+    #  indicates that you do not want to create an external load balancer for the cluster. By default, K3d creates a load balancer to expose the Kubernetes API server externally. This flag disables that feature.
+    disableLoadbalancer: false
+    loadbalancer:
+      configOverrides:
+      # - settings.workerConnections=2048
+      - settings.workerConnections=8096
+      - settings.defaultProxyTimeout=900
+  k3s:
+    # SOURCE: https://github.com/dramirez-qb/k3d-cluster/blob/5b2fc979271c7d38bc2fee7b77f8d5f6ff4c63eb/k3d-config.yaml#L5
+    nodeLabels:
+      - label: nerdctl/bypass4netns=true
+        nodeFilters:
+          - all
+    extraArgs:
+
+    # - arg: --disable=servicelb
+    #   nodeFilters:
+    #     - server:*
+
+    # - arg: --node-name=server-0
+    #   nodeFilters:
+    #     - server:0
+
+    # - arg: --node-name=worker-0
+    #   nodeFilters:
+    #     - agent:0
+    # - arg: --node-name=worker-1
+    #   nodeFilters:
+    #     - agent:1
+    # - arg: --node-name=worker-2
+    #   nodeFilters:
+    #     - agent:2
+    # - arg: --node-name=worker-3
+    #   nodeFilters:
+    #     - agent:3
+    # - arg: --node-name=worker-4
+    #   nodeFilters:
+    #     - agent:4
+    # - arg: "--debug"
+    #   nodeFilters:
+    #     - server:*
+    #     - agent:*
+    # - arg: "-v=9"
+    #   nodeFilters:
+    #     - server:*
+    #     # - agent:*
+    # - arg: "--write-kubeconfig-mode 644"
+    #   nodeFilters:
+    #     - server:*
+    # - arg: "--write-kubeconfig ~/.kube/config"
+    #   nodeFilters:
+    #     - server:*
+    - arg: --disable=traefik
+      nodeFilters:
+      - server:*
+    - arg: --disable=metrics-server
+      nodeFilters:
+      - server:*
+    # - arg: --disable-network-policy
+    #   nodeFilters:
+    #     - server:*
+
+    # NOTE: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/
+    # NOTE: https://github.com/k3s-io/k3s/issues/9256
+    # --kube-controller-manager-arg leader-elect-lease-duration=10m --kube-controller-manager-arg leader-elect-renew-deadline=8m
+    # The duration that non-leader candidates will wait after observing a leadership renewal until attempting to acquire leadership of a led but unrenewed leader slot. This is effectively the maximum duration that a leader can be stopped before it is replaced by another candidate. This is only applicable if leader election is enabled.
+    - arg: --kube-controller-manager-arg=leader-elect-lease-duration=10m
+      nodeFilters:
+      - server:*
+    # The interval between attempts by the acting master to renew a leadership slot before it stops leading. This must be less than the lease duration. This is only applicable if leader election is enabled.
+    - arg: --kube-controller-manager-arg=leader-elect-renew-deadline=8m
+      nodeFilters:
+      - server:*
+
+    ####################################################################################3
+    # new tuning
+    ####################################################################################3
+    # - arg: --kube-controller-manager-arg=leader-elect-renew-deadline=8m
+    #   nodeFilters:
+    #   - server:*
+
+
+    # - arg: --kube-controller-manager-arg=leader-election-lease-duration=120s
+    #   nodeFilters:
+    #   - server:*
+
+
+    # - arg: --kube-controller-manager-arg=leader-election
+    #   nodeFilters:
+    #   - server:*
+
+
+    # - arg: --kube-controller-manager-arg=leader-election-renew-deadline=60s
+    #   nodeFilters:
+    #   - server:*
+
+
+    # - arg: --kube-controller-manager-arg=leader-election-retry-period=30s
+    #   nodeFilters:
+    #   - server:*
+
+
+    # - arg: --kube-controller-manager-arg=kube-api-qps=100
+    #   nodeFilters:
+    #   - server:*
+
+
+    # - arg: --kube-controller-manager-arg=kube-api-burst=100
+    #   nodeFilters:
+    #   - server:*
+
+    ####################################################################################3
+    # new tuning
+    ####################################################################################3
+
+    - arg: --etcd-expose-metrics=true
+      nodeFilters:
+      - server:*
+    #######################################################################################
+    # kine
+    #######################################################################################
+    #     --datastore-endpoint value                 (db) Specify etcd, NATS, MySQL, Postgres, or SQLite (default) data source name [$K3S_DATASTORE_ENDPOINT]
+    #  --datastore-cafile value                   (db) TLS Certificate Authority file used to secure datastore backend communication [$K3S_DATASTORE_CAFILE]
+    #  --datastore-certfile value                 (db) TLS certification file used to secure datastore backend communication [$K3S_DATASTORE_CERTFILE]
+    #  --datastore-keyfile value                  (db) TLS key file used to secure datastore backend communication [$K3S_DATASTORE_KEYFILE]
+    #  --etcd-expose-metrics
+    # SOURCE: https://github.com/k3s-io/kine/blob/master/examples/minimal.md
+    - arg: --datastore-endpoint=mysql://root:raspberry@tcp(192.168.3.13:6033)/kine
+      nodeFilters:
+      - server:*
+    # - arg: --datastore-cafile="${PWD}/storage/mysql-kine/ca.crt"
+    #   nodeFilters:
+    #   - server:*
+    #   - agent:*
+    # - arg: --datastore-certfile="${PWD}/storage/mysql-kine/cert.pem"
+    #   nodeFilters:
+    #   - server:*
+    #   - agent:*
+    # - arg: --datastore-keyfile="${PWD}/storage/mysql-kine/key.pem"
+    #   nodeFilters:
+    #   - server:*
+    #   - agent:*
+    # - arg: --datastore-cafile="/mysql-kine/mysql-kine/ca.crt:z"
+    #   nodeFilters:
+    #   - server:*
+    #   - agent:*
+    # - arg: --datastore-certfile="/mysql-kine/mysql-kine/cert.pem:z"
+    #   nodeFilters:
+    #   - server:*
+    #   - agent:*
+    # - arg: --datastore-keyfile="/mysql-kine/mysql-kine/key.pem:z"
+    #   nodeFilters:
+    #   - server:*
+    #   - agent:*
+    #######################################################################################
+    - arg: --tls-san=localhost,registry.local.gd,127.0.0.1,registry.localhost,k8s.localhost,whoami.k8s.localhost,192.168.3.13
+      nodeFilters:
+      - server:*
+    - arg: --kube-proxy-arg=metrics-bind-address=0.0.0.0
+      nodeFilters:
+      - server:*
+      - agent:*
+    - arg: --kube-apiserver-arg=bind-address=0.0.0.0
+      nodeFilters:
+      - server:*
+    - arg: --kube-apiserver-arg=enable-admission-plugins=NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota
+      nodeFilters:
+      - server:*
+    - arg: --kube-apiserver-arg=enable-priority-and-fairness=false
+      nodeFilters:
+      - server:*
+    - arg: --kube-controller-manager-arg=bind-address=0.0.0.0
+      nodeFilters:
+      - server:*
+    - arg: --kube-controller-manager-arg=node-monitor-grace-period=5m
+      nodeFilters:
+      - server:*
+    - arg: --kube-controller-manager-arg=route-reconciliation-period=1m
+      nodeFilters:
+      - server:*
+    # FIXME: I think we need to re-enable these but I need help doing it # - arg: --kube-scheduler-arg=bind-address=0.0.0.0
+    # FIXME: I think we need to re-enable these but I need help doing it #   nodeFilters:
+    # FIXME: I think we need to re-enable these but I need help doing it #   - server:*
+    # FIXME: I think we need to re-enable these but I need help doing it # - arg: --kube-scheduler-arg=address=0.0.0.0
+    # FIXME: I think we need to re-enable these but I need help doing it #   nodeFilters:
+    # FIXME: I think we need to re-enable these but I need help doing it #   - server:*
+    # FIXME: I think we need to re-enable these but I need help doing it # - arg: --kube-controller-manager-arg=bind-address=0.0.0.0
+    # FIXME: I think we need to re-enable these but I need help doing it #   nodeFilters:
+    # FIXME: I think we need to re-enable these but I need help doing it #   - server:*
+    # FIXME: I think we need to re-enable these but I need help doing it # - arg: --etcd-expose-metrics=true
+    # FIXME: I think we need to re-enable these but I need help doing it #   nodeFilters:
+    # FIXME: I think we need to re-enable these but I need help doing it #   - server:*
+    # FIXME: I think we need to re-enable these but I need help doing it # - arg: --kube-controller-manager-arg=address=0.0.0.0
+    # FIXME: I think we need to re-enable these but I need help doing it #   nodeFilters:
+    # FIXME: I think we need to re-enable these but I need help doing it #   - server:*
+    - arg: --kube-apiserver-arg=max-requests-inflight=4000
+      nodeFilters:
+      - server:*
+    - arg: --kube-apiserver-arg=max-mutating-requests-inflight=2400
+      nodeFilters:
+      - server:*
+    - arg: --kube-apiserver-arg=runtime-config=api/ga=true,api/beta=true
+      nodeFilters:
+      - server:*
+    # - arg: --kubelet-arg=feature-gates=enableSystemLogHandler=true
+    #   nodeFilters:
+    #   # - agent:*
+    #   - server:*
+
+    # - arg: --kubelet-arg=feature-gates=enableSystemLogQuery=true
+    #   nodeFilters:
+    #   # - agent:*
+    #   - server:*
+
+    # - arg: --kube-apiserver-arg=feature-gates=NodeLogQuery=true
+    #   nodeFilters:
+    #   - server:*
+
+    - arg: --kubelet-arg=node-status-update-frequency=4s
+      nodeFilters:
+      - server:*
+
+    - arg: --kubelet-arg=eviction-hard=imagefs.available<0.5%,nodefs.available<0.5%
+      nodeFilters:
+      - server:*
+      - agent:*
+
+    - arg: --kubelet-arg=eviction-minimum-reclaim=imagefs.available=0.5%,nodefs.available=0.5%
+      nodeFilters:
+      - server:*
+      - agent:*
+
+    - arg: --kubelet-arg=eviction-hard=imagefs.available<0.5%,nodefs.available<0.5%
+      nodeFilters:
+      - server:*
+      - agent:*
+
+    - arg: --kubelet-arg=eviction-minimum-reclaim=imagefs.available=0.5%,nodefs.available=0.5%
+      nodeFilters:
+      - server:*
+      - agent:*
+    # - arg: --kube-apiserver-arg=audit-policy-file=/var/lib/rancher/k3s/server/manifests/audit.yaml
+    #   nodeFilters:
+    #   - server:*
+    # - arg: --kube-apiserver-arg=audit-log-path=/var/log/kubernetes/audit/audit.log
+    #   nodeFilters:
+    #   - server:*
+
+    - arg: --node-taint=node-role.kubernetes.io/master=true:NoSchedule
+      nodeFilters:
+        - server:*
+
+    - arg: --node-taint=node-role.kubernetes.io/control-plane=true:NoSchedule
+      nodeFilters:
+        - server:*
+
+    - arg: --node-taint=CriticalAddonsOnly=true:NoExecute
+      nodeFilters:
+        - server:*
+
+    - arg: --kube-apiserver-arg=v=1
+      nodeFilters:
+      - server:*
+    - arg: --kube-scheduler-arg=v=2
+      nodeFilters:
+      - server:*
+    - arg: --kube-controller-manager-arg=v=2
+      nodeFilters:
+      - server:*
+
+    # # SOURCE: https://k3d.io/v5.2.2/faq/faq/#solved-nodes-fail-to-start-or-get-stuck-in-notready-state-with-log-nf_conntrack_max-permission-denied
+    # - arg: --kube-proxy-arg=conntrack-max-per-core=0
+    #   nodeFilters:
+    #   - server:*
+    #   - agent:*
+
+    # - arg: --kube-proxy-arg=v=3
+    #   nodeFilters:
+    #   - server:*
+    # - arg: --kube-controller-manager-arg=v=3
+    #   nodeFilters:
+    #   - server:*
+
+    # https://github.com/chainguard-dev/actions/blob/ce8f95bff0df14286adebc33bf1617f91288caea/setup-k3d/action.yaml#L78
+    # # This is needed in order to support projected volumes with service account tokens.
+    # # See:
+    # #   https://kubernetes.slack.com/archives/CEKK1KTN2/p1600268272383600
+    # #   https://stackoverflow.com/questions/74603633/k3s-allow-unauthenticated-access-to-oidc-endpoints
+    # - arg: --kube-apiserver-arg=anonymous-auth=true
+    #   nodeFilters:
+    #     - server:*
+    # # This sets the issuer to what sigstore scaffolding expects.
+    # # See also: https://github.com/k3d-io/k3d/issues/1187
+    # - arg: --kube-apiserver-arg=service-account-issuer=https://kubernetes.default.svc
+    #   nodeFilters:
+    #     - server:*
+    # - arg: --kubelet-arg=max-pods=${{ inputs.max-pods }}
+    #   nodeFilters:
+    #     - server:*
+    #     - agent:*
+
+    # SOURCE: https://github.com/owncloud-docker/helm-charts/blob/d183f212988cb3530d28dbe4e409aaf0b862af2a/ci/k3d-drone.yaml#L2
+    # - arg: --tls-san=k3d
+    #   nodeFilters:
+    #     - server:*
+    # - arg: --disable=servicelb
+    #   nodeFilters:
+    #     - server:*
+    # - arg: --disable=local-storage
+    #   nodeFilters:
+    #     - server:*
+    # - arg: --flannel-backend=none
+    #   nodeFilters:
+    #     - server:*
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true
+
+  runtime: # runtime (docker) specific options
+    labels:
+      - label: my.k3s.cluster=true
+        nodeFilters:
+          - all
+      - label: nerdctl/bypass4netns=true
+        nodeFilters:
+          - all
+      - label: node-role.kubernetes.io/worker=worker
+        nodeFilters:
+          - agent:*
+    # serversMemory: 1G
+    # agentsMemory: 1G
+    ulimits:
+      # - name: nofile
+      #   soft: 26677
+      #   hard: 26677
+      # - name: nproc
+      #   soft: 26677
+      #   hard: 26677
+      # - name: core
+      #   soft: 26677
+      #   hard: 26677
+      - name: nofile
+        soft: 1048576
+        hard: 1048576
+      - name: nproc
+        soft: 1048576
+        hard: 1048576
+      - name: core
+        soft: 1048576
+        hard: 1048576
+    # --k3s-server-arg --node-taint="CriticalAddonsOnly=true:NoExecute"
