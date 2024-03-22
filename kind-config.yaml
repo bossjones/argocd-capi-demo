@@ -3,7 +3,10 @@ apiVersion: kind.x-k8s.io/v1alpha4
 # SOURCE: https://github.com/cilium/cilium/blob/aefd4ea3748cf6f82a3959461e2611c1573f4931/contrib/scripts/kind.sh#L193
 
 runtimeConfig:
-  flowcontrol.apiserver.k8s.io/v1beta3=false \
+  # flowcontrol.apiserver.k8s.io/v1beta3=false
+  "api/ga": "true"
+  "api/beta": "true"
+  "flowcontrol.apiserver.k8s.io/v1beta3": "false"
 # SOURCE: https://github.com/kubernetes-sigs/kind/blob/9ea8a5993a7118c6f3b126681e8fd0dd5baa64df/pkg/cluster/internal/kubeadm/config.go#L193
 # patch the generated kubeadm config with some extra settings
 # patch it further using a JSON 6902 patch
@@ -23,6 +26,11 @@ kubeadmConfigPatches:
       extraArgs:
         enable-admission-plugins: "NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota"
         v: "4"
+        max-requests-inflight: 8000
+        max-mutating-requests-inflight: 4400
+        # runtime-config: "api/ga=true,api/beta=true"
+        #runtime-config: "apps/v1beta1=true,apps/v1beta2=true,extensions/v1beta1/daemonsets=true,extensions/v1beta1/deployments=true,extensions/v1beta1/replicasets=true,extensions/v1beta1/networkpolicies=true,extensions/v1beta1/podsecuritypolicies=true"
+
     # SOURCE: https://github.com/chrisns/k8s-control-plane-metrics/blob/85fba554f27ed645eccc99ee78a34e75e2f853f1/test.sh#L16
     controllerManager:
       extraArgs:
