@@ -133,12 +133,12 @@ nodes:
 
   # https://kind.sigs.k8s.io/docs/user/configuration/#extra-mounts
     - containerPath: /var/lib/rancher/k3s/storage
-      hostPath: ${PWD}/storage
+      hostPath: ./storage
       # propagation: Bidirectional
       readOnly: false
 
     - containerPath: /var/log/kubernetes/audit
-      hostPath: ${PWD}/audit
+      hostPath: ./audit
       # propagation: Bidirectional
       readOnly: false
   # extraPortMappings:
@@ -177,12 +177,12 @@ nodes:
 
   # https://kind.sigs.k8s.io/docs/user/configuration/#extra-mounts
     - containerPath: /var/lib/rancher/k3s/storage
-      hostPath: ${PWD}/storage
+      hostPath: ./storage
       # propagation: Bidirectional
       readOnly: false
 
     - containerPath: /var/log/kubernetes/audit
-      hostPath: ${PWD}/audit
+      hostPath: ./audit
       # propagation: Bidirectional
       readOnly: false
 
