@@ -695,5 +695,5 @@ kind-secrets:
 kind-create:
 	kind create cluster --config=kind-config.yaml --name=manager
 	@yes | pv -SL1 -F 'Resuming in %e' -s 30 > /dev/null
-	# just bootstrap
-	# bash scripts/argoproj-status.sh
+	kubectl cluster-info
+	just bootstrap
