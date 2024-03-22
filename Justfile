@@ -681,12 +681,16 @@ apply-appsets:
 
 bootstrap:
 	until kustomize build --enable-alpha-plugins --enable-exec --enable-helm bootstrap/install | kubectl apply -f -; do sleep 3; done
+	just kind-secrets
 	just argo-status
 
 argo-status:
 	bash scripts/argoproj-status.sh
 
 kind-bootstrap: bootstrap
+
+kind-secrets:
+	bash scripts/kind-secrets.sh
 
 kind-create:
 	kind create cluster --config=kind-config.yaml --name=manager
