@@ -700,3 +700,8 @@ kind-create:
 	@yes | pv -SL1 -F 'Resuming in %e' -s 30 > /dev/null
 	kubectl cluster-info
 	just bootstrap
+
+kind-reset:
+	kind delete clusters --all
+	@yes | pv -SL1 -F 'Resuming in %e' -s 10 > /dev/null
+	just kind-create
