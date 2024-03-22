@@ -681,15 +681,15 @@ apply-appsets:
 
 bootstrap:
 	until kustomize build --enable-alpha-plugins --enable-exec --enable-helm bootstrap/install | kubectl apply -f -; do sleep 3; done
+	just argo-status
 
-	kubectl rollout status -n argo-events $(kubectl get deployment -n argo-events -l eventsource-name=webhook -o name)
-	kubectl rollout status -n argo-events $(kubectl get deployment -n argo-events -l sensor-name=webhook -o name)
-	kubectl rollout status sts/argocd-application-controller -n argocd
+argo-status:
+	bash scripts/argoproj-status.sh
 
 kind-bootstrap: bootstrap
 
 kind-create:
 	kind create cluster --config=kind-config.yaml --name=manager
 	@yes | pv -SL1 -F 'Resuming in %e' -s 30 > /dev/null
-	just bootstrap
-	bash scripts/argoproj-status.sh
+	# just bootstrap
+	# bash scripts/argoproj-status.sh

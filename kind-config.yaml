@@ -5,3 +5,21 @@ nodes:
   extraMounts:
     - hostPath: /var/run/docker.sock
       containerPath: /var/run/docker.sock
+
+  # https://kind.sigs.k8s.io/docs/user/configuration/#extra-mounts
+    - containerPath: /var/lib/rancher/k3s/storage
+      hostPath: ${PWD}/storage
+      # propagation: Bidirectional
+      readOnly: false
+
+    - containerPath: /var/log/kubernetes/audit
+      hostPath: ${PWD}/audit
+      # propagation: Bidirectional
+      readOnly: false
+
+
+  extraPortMappings:
+  - containerPort: 8443
+    hostPort: 8443
+  - containerPort: 30346
+    hostPort: 9443

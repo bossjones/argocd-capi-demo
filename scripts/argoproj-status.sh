@@ -11,9 +11,9 @@ echo ""
 
 
 set -x
-kubectl rollout status -n argo-events $(kubectl get deployment -n argo-events -l eventsource-name=webhook -o name)
-kubectl rollout status -n argo-events $(kubectl get deployment -n argo-events -l sensor-name=webhook -o name)
-kubectl rollout status sts/argocd-application-controller -n argocd
+until kubectl rollout status -n argo-events $(kubectl get deployment -n argo-events -l eventsource-name=webhook -o name); do sleep 3; done
+until kubectl rollout status -n argo-events $(kubectl get deployment -n argo-events -l sensor-name=webhook -o name); do sleep 3; done
+until kubectl rollout status sts/argocd-application-controller -n argocd; do sleep 3; done
 
 set +x
 echo "END ------------------>  ${0##*/} "
